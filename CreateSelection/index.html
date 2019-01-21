@@ -4,14 +4,296 @@
     <meta charset="utf-8" />
     <title></title>
     <style>
-        div{
-            width:300px;
-            height:400px;
-            background-color:red;
+        #divper {
+            overflow-y: scroll;
+            overflow-x: scroll;
+            width: 800px;
+            height: 550px;
+            padding: 0;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAAA3NCSVQICAjb4U/gAAAABlBMVEXMzMz////TjRV2AAAACXBIWXMAAArrAAAK6wGCiw1aAAAAHHRFWHRTb2Z0d2FyZQBBZG9iZSBGaXJld29ya3MgQ1M26LyyjAAAABFJREFUCJlj+M/AgBVhF/0PAH6/D/HkDxOGAAAAAElFTkSuQmCC');
+            border-right: 1px solid #c8c8c8;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+            user-select: none;
         }
+
+        .divper {
+            height: 550px;
+            padding: 0;
+        }
+
+        #imgDiv {
+            position: relative;
+        }
+
+            #imgDiv div {
+                position: absolute;
+                background: rgba(16,140,238,.5);
+                border: 1px solid #108cee;
+            }
+        /*鼠标拖动变换选区开始*/
+        .rRightDown, .rLeftDown, .rLeftUp, .rRightUp, .rRight, .rLeft, .rUp, .rDown {
+            position: absolute;
+            background-color: #FFF;
+            width: 6px;
+            height: 6px;
+            z-index: 5;
+            font-size: 0;
+            border-radius: 6px;
+            border: 1px solid #108cee;
+        }
+
+        .rLeftDown, .rRightUp {
+            cursor: ne-resize;
+        }
+
+        .rRightDown, .rLeftUp {
+            cursor: nw-resize;
+        }
+
+        .rRight, .rLeft {
+            cursor: e-resize;
+        }
+
+        .rUp, .rDown {
+            cursor: n-resize;
+        }
+
+        .rRightDown {
+            bottom: -6px;
+            right: -6px;
+        }
+
+        .rLeftDown {
+            bottom: -6px;
+            left: -6px;
+        }
+
+        .rRightUp {
+            top: -6px;
+            right: -6px;
+        }
+
+        .rLeftUp {
+            top: -6px;
+            left: -6px;
+        }
+
+        .rRight {
+            right: -6px;
+            top: 48%;
+        }
+
+        .rLeft {
+            left: -6px;
+            top: 48%;
+        }
+
+        .rUp {
+            top: -6px;
+            left: 48%;
+        }
+
+        .rDown {
+            bottom: -6px;
+            left: 48%;
+        }
+        /*鼠标拖动变换选区结束*/
     </style>
 </head>
 <body>
-    <div></div>
+    <input type="file" id="inputImage">
+
+    <div id="divper">
+        <div id="imgDiv">
+            <img id="img" src="" />
+        </div>
+    </div>
+    <div>
+        <input type="button" name="name" id="zoomD" value="放大" />
+        <input type="button" name="name" id="zoomX" value="缩小" />
+    </div>
+    <script src="Scripts/jquery-3.3.1.js"></script>
+    <script src="Scripts/resize.js"></script>
+    <script src="Scripts/drag.js"></script>
+    <script src="Scripts/floatMath.js"></script>
+    <script>
+        var imgEnabled;//指示是否加载进图片
+        var zoom = 1;//当前图片缩放系数
+        var isBackColor = false;
+        var maxZoom = 2;//最大缩放倍数
+        var minZoom = 0.1;//最小缩放倍数
+        var zoomDV = 0.1;//每次缩放图片的增量值
+        var _width;//每次缩放图片像素的增量值
+        var _height;//每次缩放图片像素的增量值
+        var oBox = $('#imgDiv')[0];
+        $img = $('#img');
+        $imgDiv = $('#imgDiv');
+        imgDiv = document.getElementById('imgDiv');//选区父容器
+        divper = document.getElementById('divper');//有滚动条的视窗容器
+        $inputImage = $('#inputImage');
+        $inputImage.on('change', function () {
+            $imgDiv.children('div').each(function () {
+                $(this).remove();
+            });
+            $img.attr('src', getObjectURL(this.files[0])).on('load', function () {
+                imgEnabled = true;
+                $img.removeAttr('style');
+                var nWidth = $img[0].naturalWidth;
+                var nHeight = $img[0].naturalHeight;
+                $imgDiv.width(nWidth);
+                $imgDiv.height(nHeight);
+                _width = Math.round((nWidth * zoomDV) * 10) / 10;
+                _height = Math.round((nHeight * zoomDV) * 10) / 10;
+                $img.css('width', nWidth);
+                $img.css('height', nHeight);
+            });
+        });
+        zoomImage = function ($image, r) {
+            var width = parseFloat($image[0].style.width);
+            var height = parseFloat($image[0].style.height);
+            if (r) {
+                width = add(parseFloat(width), parseFloat(_width)) + 'px';
+                height = add(parseFloat(height), parseFloat(_height)) + 'px';
+            } else {
+                width = Subtr(parseFloat(width), parseFloat(_width)) + 'px';
+                height = Subtr(parseFloat(height), parseFloat(_height)) + 'px';
+            }
+            $image[0].style.width = width;
+            $image[0].style.height = height;
+            $image.parent()[0].style.width = $image[0].style.width;
+            $image.parent()[0].style.height = $image[0].style.height;
+        }
+        $('#zoomD').click(function () {
+            zoomOptDiv(true);
+        })
+        $('#zoomX').click(function () {
+            zoomOptDiv(false);
+        })
+        zoomOptDiv = function (toZoom) {
+            if (!imgEnabled || zoom == minZoom) { return false; }
+            var oboxW = $imgDiv.width();
+            var oboxH = $imgDiv.height();
+            zoom = Math.round((zoom - zoomDV) * 10) / 10;
+            zoomImage($img, toZoom);
+            $imgDiv.children('div').each(function () {
+                var $this = $(this);
+                var leftX = parseFloat($this[0].style.left) / oboxW;
+                var topX = parseFloat($this[0].style.top) / oboxH;
+                var widthX = parseFloat($this.css('width')) / oboxW;
+                var heightX = parseFloat($this.css('height')) / oboxH;
+                var widthY = $imgDiv.width();
+                var heightY = $imgDiv.height();
+                var x = widthY * leftX;
+                var y = heightY * topX;
+                var w = widthY * widthX;
+                var h = heightY * heightX;
+                $this.css('left', x);
+                $this.css('top', y);
+                $this.css('width', w);
+                $this.css('height', h);
+            });
+        };
+        oBox.onmousedown = function (ev) {//鼠标按下，获取初始点
+            if (!imgEnabled) {
+                return false;
+            }
+            var oBoxLeft = divper.offsetLeft;//画布距离浏览器的X
+            var oBoxTop = divper.offsetTop;//画布距离浏览器的Y
+            $('#imgDiv').find('.optDiv').find('g').hide();
+            ev = window.event || ev;
+            var docScrTop = document.documentElement.scrollTop || document.body.scrollTop;
+            var docScrLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
+            //按下鼠标的X
+            var x1 = ev.clientX - oBoxLeft + docScrLeft;
+            //按下鼠标的Y
+            var y1 = ev.clientY - oBoxTop + docScrTop;
+            //console.log(x1 + ',' + y1);
+            var scrollt = divper.scrollTop;
+            var scrollw = divper.scrollLeft;
+            var imgDivW = parseFloat(imgDiv.style.width);
+            var imgDivH = parseFloat(imgDiv.style.height);
+            //创建选区
+            var $oDiv = $("<div class='optDiv'><g class='rRightDown'></g><g class='rLeftDown'></g><g class='rRightUp'></g><g class='rLeftUp'></g><g class='rRight'></g><g class='rLeft'></g><g class='rUp'></g><g class='rDown'></g></div>");
+            isBackColor = true;
+            $oDiv.css('z-index', '999');
+            $oDiv.on('click', function () {
+                $('#imgDiv').find('.optDiv').find('g').hide();
+                $oDiv.find('g').show();
+            })
+            $oDiv.find('g').hide().on('mouseover', function (e) {
+                e.stopPropagation();
+            }).on('mousedown', function () {
+                isBackColor = true;
+            }).on('mouseup', function () {
+                isBackColor = false;
+            });
+            $oDiv.myDrag({
+                direction: 'all',
+                parent: '#imgDiv',
+                dragMove: function (x, y) {
+                    //拖动中的回调
+                },
+                dragStart: function (x, y) {
+                    //拖动开始的回调
+                },
+                dragEnd: function (e) {
+                    //拖动结束的回调
+                }
+            });
+            new Resize($oDiv[0])
+                .set($oDiv.children('.rUp')[0], 'up')
+                .set($oDiv.children('.rDown')[0], 'down')
+                .set($oDiv.children('.rLeft')[0], 'left')
+                .set($oDiv.children('.rRight')[0], 'right')
+                .set($oDiv.children('.rLeftUp')[0], 'leftUp')
+                .set($oDiv.children('.rLeftDown')[0], 'leftDown')
+                .set($oDiv.children('.rRightDown')[0], 'rightDown')
+                .set($oDiv.children('.rRightUp')[0], 'rightUp');
+            oBox.onmousemove = function (ev) {
+                if (!imgEnabled) {
+                    return false;
+                }
+                if (ev.clientX > (oBoxLeft + imgDivW) || ev.clientY > (oBoxTop + imgDivH)) {
+                    return false;
+                }
+                ev = window.event || ev;
+                var x2 = ev.clientX - oBoxLeft + docScrLeft;
+                var y2 = ev.clientY - oBoxTop + docScrTop;
+                //console.log('选区X：' + x1 + '，Y：' + y1 + '，宽度：' + Math.abs(x2 - x1) + '，高度：' + Math.abs(y2 - y1) + '');
+                //设置选区宽高
+                var left = (x2 > x1 ? x1 : x2) + scrollw;
+                var top = (y2 > y1 ? y1 : y2) + scrollt;
+                var width = Math.abs(x2 - x1);
+                var height = Math.abs(y2 - y1);
+                $oDiv.css('left', left).css('top', top).css('width', width).css('height', height);
+                if (width < 10 || height < 10) {
+                    return false;
+                }
+                $(oBox).append($oDiv);
+            }
+            return false;  //解除在划动过程中鼠标样式改变的BUG
+        }
+        divper.onmouseup = function () {
+            oBox.onmousemove = null;
+            isBackColor = false;
+        }
+        getObjectURL = function (file) {
+            var url;
+            if (window.createObjcectURL != undefined) {
+                url = window.createOjcectURL(file);
+            } else if (window.URL != undefined) {
+                url = window.URL.createObjectURL(file);
+            } else if (window.webkitURL != undefined) {
+                url = window.webkitURL.createObjectURL(file);
+            }
+            return url;
+        }
+        var callbackOptDiv = function (e) {
+            var index = $imgDiv.children("div").index(e);
+            console.log('改变了第' + index + '个选区');
+        };
+    </script>
 </body>
 </html>
