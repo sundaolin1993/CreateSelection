@@ -1,5 +1,4 @@
-﻿/*判断是哪一种浏览器,火狐,谷歌,ie*/
-var Sys = (function (ua) {
+﻿var Sys = (function (ua) {
     var s = {};
     s.IE = ua.match(/msie ([\d.]+)/) ? true : false;
     s.Firefox = ua.match(/firefox\/([\d.]+)/) ? true : false;
@@ -9,7 +8,7 @@ var Sys = (function (ua) {
     s.IE8 = (s.IE && ([/MSIE (\d)\.0/i.exec(navigator.userAgent)][0][1] == 8)) ? true : false;
     return s;
 })(navigator.userAgent.toLowerCase());
-var Css = function (e, o) { /*更改对象的top,left,width,height来控制对象的大小*/
+var Css = function (e, o) {/*更改对象的top,left,width,height来控制对象的大小*/
     for (var i in o) {
         e.style[i] = o[i];
     }
@@ -19,33 +18,27 @@ var Extend = function (destination, source) { /*拷贝对象的属性*/
         destination[property] = source[property];
     }
 };
-/*直接调用方法*/
 var Bind = function (object, fun) {
     var args = Array.prototype.slice.call(arguments).slice(2);
     return function () {
         return fun.apply(object, args);
     }
 };
-/*直接调用方法,并将事件的类型传入作为第一个参数*/
 var BindAsEventListener = function (object, fun) {
     var args = Array.prototype.slice.call(arguments).slice(2);
     return function (event) {
         return fun.apply(object, [event || window.event].concat(args));
     }
 };
-/*获取当前元素的属性*/
 var CurrentStyle = function (element) {
     return element.currentStyle || document.defaultView.getComputedStyle(element, null);
 };
-/*事件监听,执行对应的函数*/
 function addListener(element, e, fn) {
     element.addEventListener ? element.addEventListener(e, fn, false) : element.attachEvent("on" + e, fn);
 };
-/*事件的移除*/
 function removeListener(element, e, fn) {
     element.removeEventListener ? element.removeEventListener(e, fn, false) : element.detachEvent("on" + e, fn)
 };
-/*创建一个新的可以拖拽的,变换大小的对象*/
 var Class = function (properties) {
     var _class = function () {
         return (arguments[0] !== null && this.initialize && typeof (this.initialize) == 'function') ? this.initialize.apply(this, arguments) : this;
@@ -66,11 +59,8 @@ var Resize = new Class({
         this.isResize = false;
     },
     set: function (elm, direction) {
-        if (!elm) {
-            return;
-        }
+        if (!elm) return;
         this.resizeelm = elm;
-        /*点击事件的监听,调用start函数去初始化数据,监听mousemove和mouseup,这两个事件,当mousemove的时候,去更改div的大小,当mouseup,去清除之前监听的两个事件*/
         addListener(this.resizeelm, 'mousedown', BindAsEventListener(this, this.start, this[direction]));
         return this;
     },
@@ -78,7 +68,6 @@ var Resize = new Class({
         imgEnabled = false;
         this.fun = fun;
         this.original = [parseInt(CurrentStyle(this.obj).width), parseInt(CurrentStyle(this.obj).height), parseInt(CurrentStyle(this.obj).left), parseInt(CurrentStyle(this.obj).top)];
-        //console.log({ width: this.original[0], height: this.original[1], left: this.original[2], top: this.original[3] });
         this.width = (this.original[2] || 0) + this.original[0];
         this.height = (this.original[3] || 0) + this.original[1];
         addListener(document, "mousemove", this.fR);
@@ -89,11 +78,9 @@ var Resize = new Class({
         pHeight = parseFloat(imgDiv.style.height);
         docScrTop = document.documentElement.scrollTop || document.body.scrollTop;
         docScrLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
-        //console.log(docScrTop + ',' + parseFloat(divper.offsetTop));
         tHeight = parseFloat(divper.offsetTop);//父容器距离浏览器的y坐标
         tWidth = parseFloat(divper.offsetLeft);//父容器距离浏览器的x坐标
-        //console.log(pWidth);
-        //console.log(pHeight);
+        $.disable_cloose()//关闭拖拽移动父容器
     },
     resize: function (e) {
         this.isResize = true;
@@ -108,13 +95,12 @@ var Resize = new Class({
             removeListener(document, "mousemove", this.fS);
             window.getSelection ? window.getSelection().removeAllRanges() : document.selection.empty();      /**清除选中的内容*/
             this.isResize = false;
+            $.disable_open()//开启拖拽移动父容器
             callbackOptDiv(this.obj);
         }
     },
     up: function (e) {
-        //console.log('浏览器滚动条高度：' + docScrTop);
         var y = e.clientY + scrollt - tHeight + docScrTop;
-        //console.log('当前鼠标y：'+y);
         if (y < 0) {
             return false;
         }
