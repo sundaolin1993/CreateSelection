@@ -81,6 +81,7 @@ var Resize = new Class({
         tHeight = parseFloat(divper.offsetTop);//父容器距离浏览器的y坐标
         tWidth = parseFloat(divper.offsetLeft);//父容器距离浏览器的x坐标
         $.disable_cloose()//关闭拖拽移动父容器
+
     },
     resize: function (e) {
         this.isResize = true;
