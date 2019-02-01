@@ -69,13 +69,13 @@
   <ItemGroup>
     <Content Include="index.html" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
-    <Content Include="Scripts\drag.js" />
     <Content Include="Scripts\floatMath.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
     <Content Include="Scripts\jquery-3.3.1.slim.js" />
     <Content Include="Scripts\jquery-3.3.1.slim.min.js" />
     <Content Include="Scripts\resize.js" />
+    <Content Include="Scripts\Tdrag.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

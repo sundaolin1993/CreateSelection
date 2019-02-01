@@ -116,7 +116,7 @@
     </div>
     <script src="Scripts/jquery-3.3.1.js"></script>
     <script src="Scripts/resize.js"></script>
-    <script src="Scripts/drag.js"></script>
+    <script src="Scripts/Tdrag.js"></script>
     <script src="Scripts/floatMath.js"></script>
     <script>
         var imgEnabled;//指示是否加载进图片
@@ -229,16 +229,15 @@
             }).on('mouseup', function () {
                 isBackColor = false;
             });
-            $oDiv.myDrag({
-                direction: 'all',
-                parent: '#imgDiv',
-                dragMove: function (x, y) {
+            $oDiv.Tdrag({
+                scope: "#imgDiv",
+                cbMove: function () {
                     //拖动中的回调
                 },
-                dragStart: function (x, y) {
+                cbStart: function () {
                     //拖动开始的回调
                 },
-                dragEnd: function (e) {
+                cbEnd: function (e) {
                     //拖动结束的回调
                 }
             });
